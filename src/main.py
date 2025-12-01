@@ -82,8 +82,8 @@ def jogar():
         print(f"Erro: Nenhuma palavra do arquivo {ARQUIVO_ALVOS} existe no dicionário baixado.")
         return
 
-    #palavra_secreta = random.choice(candidatos_validos)
-    palavra_secreta = "banana"
+    palavra_secreta = random.choice(candidatos_validos)
+    #palavra_secreta = "banana" #DEBUG
     print(palavra_secreta)
     # Pegar o vetor da palavra secreta
     idx_secreta = dicionario.index(palavra_secreta)
