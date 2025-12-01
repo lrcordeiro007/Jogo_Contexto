@@ -8,7 +8,7 @@ with open('dados_contexto.pkl', 'rb') as f:
     dicionario = dados['dicionario']
     embeddings = dados['embeddings']
 
-def ver_vizinhos(palavra_alvo, top_n=10):
+def ver_vizinhos(palavra_alvo, top_n=100):
     palavra_alvo = palavra_alvo.lower()
     
     if palavra_alvo not in dicionario:
@@ -43,5 +43,4 @@ def ver_vizinhos(palavra_alvo, top_n=10):
         print(f"#{i+1} {item['palavra']:<15} (Similaridade: {item['score']:.4f})")
 
 # --- TESTE ---
-ver_vizinhos("centro")
-ver_vizinhos("computador")
+ver_vizinhos("banana")

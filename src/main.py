@@ -5,15 +5,15 @@ import requests
 import time
 from sentence_transformers import SentenceTransformer, util
 
-# --- CONFIGURAÇÕES ---
 ARQUIVO_CACHE = "dados_contexto.pkl"
 URL_DICIONARIO = "https://raw.githubusercontent.com/pythonprobr/palavras/master/palavras.txt"
-MODELO_NOME = 'paraphrase-multilingual-MiniLM-L12-v2'
+MODELO_NOME = 'distiluse-base-multilingual-cased-v1'
 ARQUIVO_ALVOS = "palavras.txt"  
 
 def carregar_palavras_alvo():
     if not os.path.exists(ARQUIVO_ALVOS):
         print(f"Arquivo '{ARQUIVO_ALVOS}' não encontrado.")
+        return []
 
     with open(ARQUIVO_ALVOS, 'r', encoding='utf-8') as f:
         palavras = [linha.strip().lower() for linha in f.readlines()]
@@ -22,7 +22,7 @@ def carregar_palavras_alvo():
     return palavras
 
 def baixar_e_processar_dados():
-    # Executado apenas na primeira vez.
+    print("--- INICIANDO ---")
     
     # 1. Baixar Dicionário
     try:
@@ -36,25 +36,25 @@ def baixar_e_processar_dados():
     dicionario = []
     for p in todas_palavras:
         p = p.lower().strip()
-        # Filtros: Tamanho > 2, sem hífen, apenas letras
         if len(p) > 2 and '-' not in p and p.isalpha():
             dicionario.append(p)
     
-    # Remove duplicatas e ordena
     dicionario = sorted(list(set(dicionario)))
-    print(f" -> Dicionário limpo: {len(dicionario)} palavras.")
+    print(f"{len(dicionario)} palavras.")
 
     # 3. Gerar Embeddings
     model = SentenceTransformer(MODELO_NOME)
     start_time = time.time()
-    embeddings = model.encode(dicionario, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+    dicionario_com_contexto = [f"o significado da palavra {p}" for p in dicionario]
+    embeddings = model.encode(dicionario_com_contexto, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+    
     tempo = time.time() - start_time
-    print(f" -> Vetorização concluída em {tempo:.2f} segundos.")
+    print(f" concluída em {tempo:.2f} segundos.")
 
     # 4. Salvar Cache
     dados = {
-        'dicionario': dicionario,
-        'embeddings': embeddings
+        'dicionario': dicionario, 
+        'embeddings': embeddings 
     }
     with open(ARQUIVO_CACHE, 'wb') as f:
         pickle.dump(dados, f)
@@ -74,16 +74,17 @@ def jogar():
     dicionario, matriz_embeddings = carregar_dados()
     if not dicionario: return
 
-    # --- Carregando do arquivo alvos.txt ---
     alvos_possiveis = carregar_palavras_alvo()
+    
     candidatos_validos = [p for p in alvos_possiveis if p in dicionario]
     
     if not candidatos_validos:
-        print("Erro: Nenhuma palavra do arquivo alvos.txt existe no dicionário.")
+        print(f"Erro: Nenhuma palavra do arquivo {ARQUIVO_ALVOS} existe no dicionário baixado.")
         return
 
-    palavra_secreta = random.choice(candidatos_validos)
-    
+    #palavra_secreta = random.choice(candidatos_validos)
+    palavra_secreta = "banana"
+    print(palavra_secreta)
     # Pegar o vetor da palavra secreta
     idx_secreta = dicionario.index(palavra_secreta)
     vetor_secreta = matriz_embeddings[idx_secreta]
@@ -93,13 +94,10 @@ def jogar():
     print(f"Objetivo: Adivinhe a palavra secreta.")
     print(f"Dica: O número indica a distância. #1 é a vitória.")
     print("="*40)
-    print(palavra_secreta)
-    # --- PRÉ-CÁLCULO DO RANKING ---
     print("Calculando distâncias do dia...")
-    # Calcula similaridade de cosseno (Math)
+    
     todos_scores = util.cos_sim(vetor_secreta, matriz_embeddings)[0]
     
-    # Cria lista e ORDENA (Do mais parecido para o menos parecido)
     ranking_global = []
     for i in range(len(dicionario)):
         score = todos_scores[i].item()
@@ -113,7 +111,7 @@ def jogar():
     historico_usuario = []
 
     while True:
-        chute = input("\n Digite uma palavra: ").strip().lower()
+        chute = input("\nDigite uma palavra: ").strip().lower()
 
         if chute == 'sair': break
         if chute == 'desisto': 
@@ -127,10 +125,7 @@ def jogar():
         tentativas += 1
         posicao = mapa_posicoes[chute]
 
-        # Adiciona ao histórico
         historico_usuario.append({'palavra': chute, 'posicao': posicao})
-        
-        # Ordena histórico para mostrar os melhores chutes primeiro (menor número = melhor)
         historico_usuario.sort(key=lambda x: x['posicao'])
         
         print(f"\n--- Histórico ({tentativas}) ---")
@@ -139,24 +134,23 @@ def jogar():
         for item in historico_usuario:
             p = item['posicao']
             
-            # --- LÓGICA DE CORES IGUAL AO JOGO ---
             if p == 1:
-                cor = "🏆" # Vitória
+                cor = "🏆"
                 barra = "🟩🟩🟩🟩🟩 (Você acertou!)"
             elif p <= 300:
-                cor = "🟢" #Perto
+                cor = "🟢"
                 barra = "🟩🟩🟩🟩⬜"
             elif p <= 1500:
-                cor = "🟡" #Morno
+                cor = "🟡"
                 barra = "🟨🟨⬜⬜⬜"
             else:
-                cor = "🔴" #Frio
+                cor = "🔴"
                 barra = "🟥⬜⬜⬜⬜"
             
             print(f"{cor} #{p:<8} {item['palavra']:<20} {barra}")
 
         if posicao == 1:
-            print(f"\n PARABÉNS! A palavra era {palavra_secreta.upper()}")
+            print(f"\nPARABÉNS! A palavra era {palavra_secreta.upper()}")
             print(f"Você acertou em {tentativas} tentativas.")
             break
 
