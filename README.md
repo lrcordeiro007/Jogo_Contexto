@@ -20,8 +20,8 @@ Diferente de jogos de forca ou palavras cruzadas que analisam letras, este proje
 
 1. **Clone o repositório:**
    ```bash
-   git clone [https://github.com/SEU-USUARIO/SEU-REPO.git](https://github.com/SEU-USUARIO/SEU-REPO.git)
-   cd SEU-REPO
+   git clone https://github.com/lrcordeiro007/Jogo_Contexto.git
+   cd (https://github.com/lrcordeiro007/Jogo_Contexto.git)
    ```
 2. **Instale as dependências:**
    ```bash
