@@ -84,7 +84,7 @@ def jogar():
 
     palavra_secreta = random.choice(candidatos_validos)
     #palavra_secreta = "banana" #DEBUG
-    print(palavra_secreta)
+    # print(palavra_secreta)
     # Pegar o vetor da palavra secreta
     idx_secreta = dicionario.index(palavra_secreta)
     vetor_secreta = matriz_embeddings[idx_secreta]
